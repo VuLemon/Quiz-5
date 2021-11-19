@@ -1,0 +1,123 @@
+import React ,{ useState, useEffect, component} from 'react'
+import { Button, Text, View, StyleSheet, TextInput, Image, SafeAreaView, FlatList, TouchableOpacity} from 'react-native'
+import Axios from 'axios';
+
+
+export default function App() {
+  useEffect(() => {getData()},[])
+  useEffect(() => getContent(bb),[bb])
+
+  const [bboards,setBboards] = useState();
+  const [content, setContent] = useState();
+  const [bb, setBB] = useState();
+  const [length,setLength] = useState()
+
+
+
+
+  const getData = async() => {
+    try {
+      let result = await Axios.get('https://glacial-hamlet-05511.herokuapp.com/bboardNames')
+      setBboards(result.data)
+    } catch(e){
+      console.log("Axios get bboard failed")
+    }
+  }
+
+  const getContent = async(bb) => {
+    try {
+      let result = await Axios.post('https://glacial-hamlet-05511.herokuapp.com/posts',{bboard: bb})
+      setContent(result.data)
+      setLength(result.data.length)
+    } catch(e){
+      console.log("Axios get button failed")
+    }
+  }
+
+  return (
+    <View style = {{flex:1}}>
+      <View style = {styles.header}>
+        <Text style = {styles.headerFont}> BBviewer </Text>
+      </View>
+      <View style = {{flex: 1, flexDirection: 'row'}}>
+        <Button
+          title = 'refresh bboards'
+          onPress = {() => getData}
+        />
+        <FlatList
+          data = {bboards}
+          renderItem = {({item,index}) => {
+            return(
+              <View style = {{padding: 8}}>
+                <TouchableOpacity style = {styles.button}
+                  onPress = {() => {
+                    setBB(item)
+                    getContent(item)
+                  }}
+                >
+                <Text style = {styles.headerFont}> {item} </Text>
+                </TouchableOpacity>
+              </View>
+            )
+          }}
+          keyExtractor = {item => item.id}
+          horizontal
+        />
+      </View>
+      <View style = {{flex: 7}}>
+        <View style = {{flexDirection: 'row'}}>
+          <Text style = {{fontSize: 28}}> Selected bboard: </Text>
+          <View style = {{backgroundColor:'black'}}>
+            <Text style = {styles.headerFont}> {bb} </Text>
+          </View>
+        </View>
+        <FlatList
+          data = {content}
+          renderItem = {({item,index}) => {
+            return(
+              <View style = {{padding: 12}}>
+              <View style = {styles.item}>
+                <Text style = {{fontSize:20}}> {item.title} </Text>
+                <Text style = {{fontSize:15}}> {item.text} </Text>
+              </View>
+              </View>
+            )
+          }}
+          keyExtractor = {item => item.id}
+        />
+      </View>
+      <View style = {{flex: 3}}>
+      </View>
+      <View>
+        <Text> DEBUGGING </Text>
+        <Text> bb: {bb} </Text>
+        <Text> bb.length = {length}</Text>
+        <Text> posts:
+         {JSON.stringify(content)}
+         </Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    flex: 2,
+    justifyContent: 'center',
+    alignContent: 'center',
+    backgroundColor: 'black',
+  },
+   headerFont: {
+    fontSize: 20,
+    textAlign: 'center',
+    color: 'red',
+  },
+  button: {
+    backgroundColor: 'black',
+    color: 'red',
+  },
+  item: {
+    backgroundColor: "lightgray",
+  }
+
+});
